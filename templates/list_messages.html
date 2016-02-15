@@ -1,0 +1,24 @@
+{% extends "templates/base.html" %}
+
+{% block content %}
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#received" aria-controls="received" role="tab" data-toggle="tab">Received</a></li>
+    <li role="presentation"><a href="#sent" aria-controls="sent" role="tab" data-toggle="tab">Sent</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="received">
+      {% set messages = received_messages %}
+      {% include "templates/message_panel.html" %}
+    </div>
+    <div role="tabpanel" class="tab-pane" id="sent">
+      {% set messages = sent_messages %}
+      {% include "templates/message_panel.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

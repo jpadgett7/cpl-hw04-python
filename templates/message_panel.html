@@ -1,0 +1,33 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <div class="row">
+      <div class="col-sm-2"><strong>Time</strong></div>
+      <div class="col-sm-2"><strong>From</strong></div>
+      <div class="col-sm-2"><strong>To</strong></div>
+      <div class="col-sm-6"><strong>Subject</strong></div>
+    </div>
+  </div>
+  <div class="list-group">
+    {% for msg in messages %}
+    <div class="list-group-item">
+      {# use the HTML escape filter to mitigate certain attacks #}
+      <div class="row text-left">
+        <div class="col-sm-2">{{ msg.time | e }}</div>
+        <div class="col-sm-2">{{ msg.from | e }}</div>
+        <div class="col-sm-2">{{ msg.to | e }}</div>
+        <div class="col-sm-6">
+          {{ msg.subject | e }}
+          <div class="pull-right">
+            <a class="btn btn-xs btn-info" href="/view/{{ msg.id }}/"><i class="fa fa-eye"></i></a>
+            <a class="btn btn-xs btn-danger" href="/delete/{{ msg.id }}/"><i class="fa fa-times"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="list-group-item">
+      No messages found.
+    </div>
+    {% endfor %}
+  </div>
+</div>

@@ -1,0 +1,19 @@
+{% extends "templates/base.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 col-md-offset-2 well">
+    <h1 class="text-center">Shred All Messages</h1>
+    <hr>
+    <form class="form-horizontal" method="post" action="/shred/">
+      <p>Are you sure you want to shred all messages?</p>
+      <div class="form-group">
+        <div class="col-sm-10">
+          <button type="submit" class="btn btn-success">Yep</button>
+          <a href="/" class="btn btn-danger">Nope</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

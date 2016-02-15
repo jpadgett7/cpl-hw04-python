@@ -1,0 +1,9 @@
+Uh... hey.
+
+This file's whole purpose is to tell Git that we want to keep this
+directory called messages/. Git does not track directories; it
+only tracks files.
+
+So, leave this file alone. It ain't hurtin' nobody.
+
+Also, don't commit your message data files. We don't want that junk.
