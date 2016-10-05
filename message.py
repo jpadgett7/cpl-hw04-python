@@ -32,7 +32,14 @@ def validate_message_form(form):
         indicates that no errors were found.
 
     """
-    pass
+    errors = []
+    for k in ("to", "subject", "body"):  # Checking these 
+        if k in form:
+            if form[k] == "":
+                errors.append("ERROR: Nothing entered in field", k)
+        else:
+            errors.append("ERROR: No", k, "key found in message!")
+    return errors
 
 
 def _load_message(message_filename):
@@ -65,7 +72,18 @@ def _load_message(message_filename):
     :returns: A loaded message dict as described above
 
     """
-    pass
+    with open(message_filename) as raw_file:
+        msg_data = json.load(raw_file)
+    msg = {}  # Because this homework makes me salty
+
+    # Using os, we split the filename from its path and extension.
+    msg["id"] = os.path.splitext(os.path.basename(message_filename))[0]
+    msg["time"] = datetime.strptime(msg_data["time"], DATE_FORMAT)
+    
+    # Filling in the rest of msg keys
+    for k in ("to", "from", "subject", "body"):
+        msg[k] = msg_data[k]
+    return msg
 
 
 def load_message(message_id):
@@ -74,11 +92,11 @@ def load_message(message_id):
     Uses the ID of a message to construct a file path, and uses
     :func:`message._load_message` to load and return the message data.
 
-    :returns: A list of loaded messages ordered by timestamp from
-        most to least recent.
+    :returns: A single loaded message.
 
     """
-    pass
+    pathname = "../messages/" + message_id
+    return _load_message(pathname)
 
 
 def load_all_messages():
@@ -94,7 +112,11 @@ def load_all_messages():
         most to least recent.
 
     """
-    pass
+    all_msg = glob.glob("../messages/*.json")
+    msgs = []
+    for i in all_msg:
+        msgs.append(_load_message(i))
+    return sorted(msgs, key=lambda x: x["time"])
 
 
 def load_sent_messages(username):
@@ -116,7 +138,7 @@ def load_sent_messages(username):
         by timestamp from most to least recent.
 
     """
-    pass
+    return [m for m in load_all_messages() if m["from"] == username]
 
 
 def load_received_messages(username):
@@ -138,8 +160,7 @@ def load_received_messages(username):
         by timestamp from most to least recent.
 
     """
-    pass
-
+    return [m for m in load_all_messages() if m["to"] == username]
 
 def send_message(message_dict):
     """Saves a message to the ``messages/`` directory.
@@ -177,4 +198,10 @@ def send_message(message_dict):
     :returns: None
 
     """
-    pass
+    filename = "../messages/" + uuid4() + ".json"
+    msg = {}
+    for k in ("to", "from", "subject", "body", "time"):
+        msg[k] = message_dict[k]
+    with open(filename, 'w') as msg_file:
+        json.dump(msg, msg_file)
+    return

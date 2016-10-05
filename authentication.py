@@ -33,7 +33,13 @@ def requires_authentication(func):
     :returns: The wrapped function
 
     """
-    pass
+    @wraps(func)
+    def gift_wrap(*args, **kwargs):  # A festive wrapper
+        if not request.get_cookie("logged_in_as"):
+            redirect("/login/")
+        else
+            return func(*args, **kwargs)
+    return gift_wrap  # Happy holidays... oh, I'm early aren't I?
 
 
 def requires_authorization(func):
@@ -103,7 +109,14 @@ def validate_login_form(form):
         indicates that no errors were found.
 
     """
-    pass
+    errors = []
+    for k in ("username", "password"):
+        if k in form:
+            if form[k] == "":
+                errors.append("ERROR: No", k, "entered!")
+        else:
+            errors.append("ERROR: No", k, "key found in login form.")
+    return errors
 
 
 def check_password(username, password):
@@ -124,4 +137,9 @@ def check_password(username, password):
         "passwords.json", otherwise False
 
     """
-    pass
+    with open("passwords.json") as very_secure_docs:
+        pw_list = json.load(very_secure_docs)
+    if username in pw_list:
+        return pw_list[username] == password
+    else:
+        return false
