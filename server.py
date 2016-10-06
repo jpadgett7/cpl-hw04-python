@@ -26,6 +26,8 @@ from message import (
 
 @get('/')
 @jinja2_view("templates/list_messages.html")
+@load_alerts
+@requires_authentication
 def list_messages():
     """Handler for GET requests to ``/`` path.
 
@@ -50,11 +52,16 @@ def list_messages():
     :rtype: dict
 
     """
-    return {}
+    user = request.get_cookie("logged_in_as")
+    msgs = {}
+    msgs["sent_messages"] = load_sent_messages(user)
+    msgs["received_messages"] = load_received_messages(user)
+    return msgs
 
 
 @get('/compose/')
 @jinja2_view("templates/compose_message.html")
+@requires_authentication
 def show_compose_message_form():
     """Handler for GET requests to ``/compose/`` path.
 
@@ -76,10 +83,15 @@ def show_compose_message_form():
     :rtype: dict
 
     """
-    return {}
+    result = {}
+    with open("passwords.json") as p_files:
+        pw = json.load(p_files)
+    result["people"] = pw.keys()
+    return result
 
 
 @post('/compose/')
+@requires_authentication
 def process_compose_message_form():
     """Handler for POST requests to ``/compose/`` path.
 
@@ -103,11 +115,22 @@ def process_compose_message_form():
         pages. It has no template to render.
 
     """
-    redirect("/")
+    msg_form = request.forms
+    msg_form["from"] = request.get_cookie("logged_in_as")
+    errs = validate_message_form(msg_form)
+    if errs:  # Errors found in validation function
+        for e in errs:
+            save_danger(e)
+        redirect("/compose/")
+    else:  # No errors found, continue with process
+        send_message(msg_form)
+        save_success("Message sent!")
+        redirect("/")
 
 
 @get('/view/<message_id:re:[0-9a-f\-]{36}>/')
 @jinja2_view("templates/view_message.html")
+@requires_authorization
 def view_message(message_id):
     """Handler for GET requests to ``/view/<message_id>/`` path.
 
@@ -128,11 +151,12 @@ def view_message(message_id):
     :rtype: dict
 
     """
-    return {}
+    return {"message":load_message(message_id)}
 
 
 @get('/delete/<message_id:re:[0-9a-f\-]{36}>/')
 @jinja2_view("templates/delete_message.html")
+@requires_authorization
 def show_deletion_confirmation_form(message_id):
     """Handler for GET requests to ``/delete/<message_id>/`` path.
 
@@ -153,10 +177,11 @@ def show_deletion_confirmation_form(message_id):
     :rtype: dict
 
     """
-    return {}
+    return {"message":load_message(message_id)}
 
 
 @post('/delete/<message_id:re:[0-9a-f\-]{36}>/')
+@requires_authorization
 def delete_message(message_id):
     """Handler for POST requests to ``/delete/<message_id>/`` path.
 
@@ -174,7 +199,15 @@ def delete_message(message_id):
         pages. It has no template to render.
 
     """
-    redirect("/")
+    pathname = "messages/" + message_id + ".json"
+    try:
+        os.remove(pathname)
+    except OSError:
+        save_danger("No such message", message_id)
+    else:
+        save_success("Deleted", message_id, ".")
+    finally:
+        redirect("/")
 
 
 @get('/shred/')
@@ -217,7 +250,17 @@ def shred_messages():
         pages. It has no template to render.
 
     """
-    redirect("/")
+
+    all_msgs = glob("messages/*.json")
+    try:
+        for msg in all_msgs:
+            os.remove(msg)
+    except OSError:
+        save_danger("Failed to shred messages.")
+        redirect("/")
+    else:
+        save_success("Shredded all messages.")
+        redirect("/")
 
 
 @get('/login/')
