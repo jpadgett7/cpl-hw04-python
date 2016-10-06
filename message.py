@@ -33,12 +33,12 @@ def validate_message_form(form):
 
     """
     errors = []
-    for k in ("to", "subject", "body"):  # Checking these 
+    for k in ("to", "subject", "body"):  # Checking specified keys
         if k in form:
             if form[k] == "":
-                errors.append("ERROR: Nothing entered in field", k)
+                errors.append(k, "field cannot be blank!")
         else:
-            errors.append("ERROR: No", k, "key found in message!")
+            errors.append("Missing", k, "field!")
     return errors
 
 
@@ -78,8 +78,10 @@ def _load_message(message_filename):
 
     # Using os, we split the filename from its path and extension.
     msg["id"] = os.path.splitext(os.path.basename(message_filename))[0]
-    msg["time"] = datetime.strptime(msg_data["time"], DATE_FORMAT)
     
+    # Using datetime, we convert the str to a datetime object
+    msg["time"] = datetime.strptime(msg_data["time"], DATE_FORMAT)
+
     # Filling in the rest of msg keys
     for k in ("to", "from", "subject", "body"):
         msg[k] = msg_data[k]
@@ -95,7 +97,7 @@ def load_message(message_id):
     :returns: A single loaded message.
 
     """
-    pathname = "../messages/" + message_id
+    pathname = "messages/" + message_id
     return _load_message(pathname)
 
 
@@ -112,10 +114,9 @@ def load_all_messages():
         most to least recent.
 
     """
-    all_msg = glob.glob("../messages/*.json")
-    msgs = []
-    for i in all_msg:
-        msgs.append(_load_message(i))
+
+    all_files = glob("./messages/*.json")
+    msgs = [_load_message(i) for i in all_files]
     return sorted(msgs, key=lambda x: x["time"])
 
 
@@ -162,6 +163,7 @@ def load_received_messages(username):
     """
     return [m for m in load_all_messages() if m["to"] == username]
 
+
 def send_message(message_dict):
     """Saves a message to the ``messages/`` directory.
 
@@ -198,10 +200,11 @@ def send_message(message_dict):
     :returns: None
 
     """
-    filename = "../messages/" + uuid4() + ".json"
+    filename = "messages/" + str(uuid4()) + ".json"
     msg = {}
-    for k in ("to", "from", "subject", "body", "time"):
+    for k in ("to", "from", "subject", "body"):
         msg[k] = message_dict[k]
+    msg["time"] = datetime.now().strftime(DATE_FORMAT)
     with open(filename, 'w') as msg_file:
         json.dump(msg, msg_file)
     return
