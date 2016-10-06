@@ -61,6 +61,7 @@ def list_messages():
 
 @get('/compose/')
 @jinja2_view("templates/compose_message.html")
+@load_alerts
 @requires_authentication
 def show_compose_message_form():
     """Handler for GET requests to ``/compose/`` path.
@@ -130,6 +131,7 @@ def process_compose_message_form():
 
 @get('/view/<message_id:re:[0-9a-f\-]{36}>/')
 @jinja2_view("templates/view_message.html")
+@load_alerts
 @requires_authorization
 def view_message(message_id):
     """Handler for GET requests to ``/view/<message_id>/`` path.
@@ -151,11 +153,12 @@ def view_message(message_id):
     :rtype: dict
 
     """
-    return {"message":load_message(message_id)}
+    return {"message": load_message(message_id)}
 
 
 @get('/delete/<message_id:re:[0-9a-f\-]{36}>/')
 @jinja2_view("templates/delete_message.html")
+@load_alerts
 @requires_authorization
 def show_deletion_confirmation_form(message_id):
     """Handler for GET requests to ``/delete/<message_id>/`` path.
@@ -181,7 +184,6 @@ def show_deletion_confirmation_form(message_id):
 
 
 @post('/delete/<message_id:re:[0-9a-f\-]{36}>/')
-@load_alerts
 @requires_authorization
 def delete_message(message_id):
     """Handler for POST requests to ``/delete/<message_id>/`` path.
@@ -200,10 +202,9 @@ def delete_message(message_id):
         pages. It has no template to render.
 
     """
-
     msg = "messages/{}.json".format(message_id)
     try:
-        os.remove(msg)
+        os.remove(msg)  # Raising OSError?
     except OSError:
         save_danger("No such message {}".format(message_id))
     else:

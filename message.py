@@ -80,7 +80,7 @@ def _load_message(message_filename):
 
     # Using os, we split the filename from its path and extension.
     msg["id"] = os.path.splitext(os.path.basename(message_filename))[0]
-    
+
     # Using datetime, we convert the str to a datetime object
     msg["time"] = datetime.strptime(msg_data["time"], DATE_FORMAT)
 
@@ -99,7 +99,7 @@ def load_message(message_id):
     :returns: A single loaded message.
 
     """
-    pathname = "messages/" + message_id
+    pathname = "messages/{}.json".format(message_id)
     return _load_message(pathname)
 
 
