@@ -35,11 +35,11 @@ def requires_authentication(func):
     """
     @wraps(func)
     def gift_wrap(*args, **kwargs):  # A festive wrapper
-        if not request.get_cookie("logged_in_as"):
+        if not request.get_cookie("logged_in_as"):  # empty username
             redirect("/login/")
-        else
+        else:  # all clear!
             return func(*args, **kwargs)
-    return gift_wrap  # Happy holidays... oh, I'm early aren't I?
+    return gift_wrap  # Happy holidays... oh, I'm early, aren't I?
 
 
 def requires_authorization(func):
@@ -91,7 +91,22 @@ def requires_authorization(func):
     :returns: The wrapped function
 
     """
-    pass
+    @wraps(func)
+    def wrapper(m_id, *args, **kwargs):
+        username = request.get_cookie("logged_in_as")
+        if not username:  # i.e. username cookie is blank or empty
+            redirect("/login/")
+        else:  # user is logged in
+            try:
+                msg = load_message(m_id)
+                if msg["to"] == username or msg["from"] == username:
+                    return func(m_id, *args, **kwargs)  # all clear!
+                else:  # User is not sender or recepient of message
+                    save_danger("User not authorized to view message")
+            except OSError:
+                save_danger("Unable to load message")
+                redirect("/")
+    return wrapper
 
 
 def validate_login_form(form):
@@ -113,9 +128,9 @@ def validate_login_form(form):
     for k in ("username", "password"):
         if k in form:
             if form[k] == "":
-                errors.append("ERROR: No", k, "entered!")
+                errors.append(k, "field cannot be blank!")
         else:
-            errors.append("ERROR: No", k, "key found in login form.")
+            errors.append("Missing", k, "field!")
     return errors
 
 
@@ -142,4 +157,4 @@ def check_password(username, password):
     if username in pw_list:
         return pw_list[username] == password
     else:
-        return false
+        return False
