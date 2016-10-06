@@ -177,10 +177,11 @@ def show_deletion_confirmation_form(message_id):
     :rtype: dict
 
     """
-    return {"message":load_message(message_id)}
+    return {"message": load_message(message_id)}
 
 
 @post('/delete/<message_id:re:[0-9a-f\-]{36}>/')
+@load_alerts
 @requires_authorization
 def delete_message(message_id):
     """Handler for POST requests to ``/delete/<message_id>/`` path.
@@ -199,19 +200,21 @@ def delete_message(message_id):
         pages. It has no template to render.
 
     """
-    pathname = "messages/" + message_id + ".json"
+
+    msg = "messages/{}.json".format(message_id)
     try:
-        os.remove(pathname)
+        os.remove(msg)
     except OSError:
-        save_danger("No such message", message_id)
+        save_danger("No such message {}".format(message_id))
     else:
-        save_success("Deleted", message_id, ".")
-    finally:
-        redirect("/")
+        save_success("Deleted {}.".format(message_id))
+    redirect("/")
 
 
 @get('/shred/')
 @jinja2_view("templates/shred_messages.html")
+@load_alerts
+@requires_authentication
 def show_shred_confirmation_form():
     """Handler for GET requests to ``/shred/`` path.
 
@@ -234,6 +237,7 @@ def show_shred_confirmation_form():
 
 
 @post('/shred/')
+@requires_authentication
 def shred_messages():
     """Handler for POST requests to ``/shred/`` path.
 
@@ -259,7 +263,7 @@ def shred_messages():
         save_danger("Failed to shred messages.")
         redirect("/")
     else:
-        save_success("Shredded all messages.")
+        save_success("Shreded all messages.")
         redirect("/")
 
 

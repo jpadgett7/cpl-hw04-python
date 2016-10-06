@@ -92,19 +92,21 @@ def requires_authorization(func):
 
     """
     @wraps(func)
-    def wrapper(m_id, *args, **kwargs):
+    def wrapper(message_id, *args, **kwargs):
         username = request.get_cookie("logged_in_as")
         if not username:  # i.e. username cookie is blank or empty
             redirect("/login/")
         else:  # user is logged in
             try:
-                msg = load_message(m_id)
+                msg = load_message(message_id)
                 if msg["to"] == username or msg["from"] == username:
-                    return func(m_id, *args, **kwargs)  # all clear!
+                    return func(message_id, *args, **kwargs)  # all clear!
                 else:  # User is not sender or recepient of message
                     save_danger("User not authorized to view message")
+                    redirect("/")
             except OSError:
-                save_danger("Unable to load message")
+                err = "No such message " + message_id
+                save_danger(err)
                 redirect("/")
     return wrapper
 
@@ -128,9 +130,11 @@ def validate_login_form(form):
     for k in ("username", "password"):
         if k in form:
             if form[k] == "":
-                errors.append(k, "field cannot be blank!")
+                err = k + " field cannot be blank!"
+                errors.append(err)
         else:
-            errors.append("Missing", k, "field!")
+            err = "Missing " + k + " field!"
+            errors.append(err)
     return errors
 
 

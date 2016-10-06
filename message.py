@@ -36,9 +36,11 @@ def validate_message_form(form):
     for k in ("to", "subject", "body"):  # Checking specified keys
         if k in form:
             if form[k] == "":
-                errors.append(k, "field cannot be blank!")
+                err = k + " field cannot be blank!"
+                errors.append(err)
         else:
-            errors.append("Missing", k, "field!")
+            err = "Missing " + k + " field!"
+            errors.append(err)
     return errors
 
 
@@ -117,7 +119,7 @@ def load_all_messages():
 
     all_files = glob("./messages/*.json")
     msgs = [_load_message(i) for i in all_files]
-    return sorted(msgs, key=lambda x: x["time"])
+    return sorted(msgs, key=lambda x: x["time"], reverse=True)
 
 
 def load_sent_messages(username):
